@@ -13,17 +13,34 @@ loadModel();
 // const text = "Samuel Zakaria Medan Kota, North Sumatra, Indonesia samuelzakaria28@gmail.com linkedin.com/in/samuel-zakaria Summary I am Samuel Zakaria, I am an active student of Information System at Pelita Harapan University, Medan Campus. I have UI/UX Designer experience, and as a full stack developer during college. That experience gave me basic insight into front-end and back-endand I realized I had an interest in that area.   In my experience the skills I got I can use the language: 1.HTML 2. Php 3. CSS 4. Java   can also do: 1. Research users need information 2. Display development 3. Doing Documentation Experience UNY National IT Competition (UNITY) #10\" Tahun 2022 Yogyakarta State University Jan 2022 - Jun 2022 (6 months) Unity is a national student competition in the field of technology by Yogyakarta State University. I was entrusted as the team leader, as well as the editor of my team.   Team Leader - Responsible for ensuring that each member does their job description. - Responsible for the ideas that will be collected in the competition - Take full responsibility for the team, to provide good collaborative work.   Video Editors - Responsible for making video concepts, shooting schedules, and checking video scripts. - Responsible in the process of shooting video, and record audio. - Responsible for the process of editing video competitions with high quality and good quality. - Responsible for the process of uploading videos to the YouTube platform. Team Leader Spiritual Growth for Student UPH Oct 2022 - Jan 2023 (4 months) Become a team leader of the \"Christmas Celebration 2022\" work program.   Jobdesc : Samuel Zakaria - page 1  1. Ensuring the Work Program runs well 2. Handling external relations with sponsors, speakers, supervisory groups, and superior groups 3. Handling internal relations with 80 team members 4. Ensuring each timeline is on target Graphic Designer Spiritual Growth for Student UPH Jul 2022 - Jun 2023 (1 year) Hold control over the organization's Publications Education Universitas Pelita Harapan Bachelor's degree, Computer and Information Systems Security/Information Assurance 2021 - 2024 Licenses & Certifications Memahami Konsep UI dan UX - Udemy UC-fd74c9c9-0e0e-4655-a78e-69b3bae9994e Skills Documentation   •   Team Leadership   •   Graphic Design   •   Research Skills   •   UI/UX   •   HTML   •   PHP   •   Cascading Style Sheets (CSS) Samuel Zakaria - page 2"
 const text = "Samuel Zakaria Medan Kota, North Sumatra, Indonesia samuelzakaria28@gmail.com linkedin.com/in/samuel-zakaria Summary I am Samuel Zakaria, I am an active student of Information System at Pelita Harapan University, Medan Campus. I have UI/UX Designer experience, and as a full stack developer during college. That experience gave me basic insight into front-end and back-endand I realized I had an interest in that area.   In my experience the skills I got I can use the language: 1.HTML 2. Php 3. CSS 4. Java   can also do: 1. Research users need information 2. Display development 3. Doing Documentation Experience UNY National IT Competition (UNITY) #10\" Tahun 2022 Yogyakarta State University Jan 2022 - Jun 2022 (6 months) Unity is a national student competition in the field of technology by Yogyakarta State University. I was entrusted as the team leader, as well as the editor of my team.   Team Leader - Responsible for ensuring that each member does their job description. - Responsible for the ideas that will be collected in the competition - Take full responsibility for the team, to provide good collaborative work.   Video Editors - Responsible for making video concepts, shooting schedules, and checking video scripts. - Responsible in the process of shooting video, and record audio. - Responsible for the process of editing video competitions with high quality and good quality. - Responsible for the process of uploading videos to the YouTube platform. Team Leader Spiritual Growth for Student UPH Oct 2022 - Jan 2023 (4 months) Become a team leader of the \"Christmas Celebration 2022\" work program.   Jobdesc : Samuel Zakaria - page 1  1. Ensuring the Work Program runs well 2. Handling external relations with sponsors, speakers, supervisory groups, and superior groups 3. Handling internal relations with 80 team members 4. Ensuring each timeline is on target Graphic Designer Spiritual Growth for Student UPH Jul 2022 - Jun 2023 (1 year) Hold control over the organization's Publications Education Universitas Pelita Harapan Bachelor's degree, Computer and Information Systems Security/Information Assurance 2021 - 2024 Licenses & Certifications Memahami Konsep UI dan UX - Udemy UC-fd74c9c9-0e0e-4655-a78e-69b3bae9994e Skills Documentation   •   Team Leadership   •   Graphic Design   •   Research Skills   •   UI/UX   •   HTML   •   PHP   •   Cascading Style Sheets (CSS) Samuel Zakaria - page 2"
 const predictHandler = async (req, h) => {
-    try {
+    // try {
         const data = preprocessing(text);
         const preData = tokenize(data);
+
+        console.log(preData)
         
-        const inputData = tf.tensor2d(preData)
-        const outputData = model.predict(inputData);
-        return outputData;
-    } catch (error) {
-        return error
-    }
+        const inputData = tf.tensor1d(preData, dtype='int32').expandDims(0);
+        console.log(inputData)
+
+        // console.log(model)
+
+        const outputData = model.predict(new Array(inputData));
+        console.log(outputData)
+
+        // let [predictions, attention_probs] = await model.predict(inputData);
+        // console.log(await predictions.argMax(-1).data())
+
+        // attention_probs = await attention_probs.data();
+
+        // console.log(attention_probs)
+
+        // return outputData;
+    // } catch (error) {
+    //     return error
+    // }
 }
+
+const MAXLEN = 800;
 
 const tokenize = (text) => {
     const tokenizer = new Tokenizer({ num_words: 5, oov_token: "<unk>", });
@@ -31,15 +48,21 @@ const tokenize = (text) => {
 
     const json = tokenizer.toJson();
     
+    // const tokenizer_ = tokenizerFromJson("file://model/tokenizer_sentences.json");
     const tokenizer_ = tokenizerFromJson(json);
     
     tokenizer_.fitOnTexts(text);
     
     const sequences = tokenizer_.textsToSequences(text);
     
-    const flattenedArray = sequences.flat();
+    if(sequences.length < MAXLEN) {
+        let pad_array = Array(MAXLEN - sequences.length);
+        // pad_array.fill(tokenizer_["<OOV>"]);
+        pad_array.fill(0);
+        sequencesPadded = sequences.flat().concat(pad_array);
+    }
 
-    return flattenedArray;
+    return sequencesPadded;
 }
 
 function preprocessing(sentence) { 
